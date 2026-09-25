@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_style.dart';
 
@@ -9,6 +10,9 @@ class MaintenanceCard extends StatelessWidget {
   final String phone;
   final String serviceType;
   final String dueDate;
+  final VoidCallback? onCall;
+  final VoidCallback? onPostpone;
+  final VoidCallback? onApprove;
 
   const MaintenanceCard({
     super.key,
@@ -18,7 +22,20 @@ class MaintenanceCard extends StatelessWidget {
     required this.phone,
     required this.serviceType,
     required this.dueDate,
+    this.onCall,
+    this.onPostpone,
+    this.onApprove,
   });
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +94,7 @@ class MaintenanceCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: onCall ?? () => _makePhoneCall(phone),
                 icon: const Icon(Icons.phone_outlined, size: 16, color: AppColors.primary),
                 label: const Text(
                   'اتصال سريع',
@@ -137,7 +154,7 @@ class MaintenanceCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: onPostpone,
                   icon: const Icon(Icons.calendar_month_outlined, size: 16, color: AppColors.coral),
                   label: Text(
                     'تأجيل / رفض',
@@ -154,7 +171,7 @@ class MaintenanceCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: onApprove,
                   icon: const Icon(Icons.check_circle_outline, size: 16, color: Colors.white),
                   label: const Text(
                     'موافقة على الصيانة',

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/app_validator.dart';
-import '../../manager/auth_cubit.dart';
-import '../../manager/auth_state.dart';
+import '../../manager/login_cubit/login_cubit.dart';
+import '../../manager/login_cubit/login_state.dart';
 import 'auth_form_card.dart';
 import 'custom_button.dart';
 import 'custom_text_field.dart';
@@ -78,20 +79,41 @@ class _LoginFormState extends State<LoginForm> {
                   },
                 ),
               ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () {
+                    context.push('/forgot-password');
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'نسيت كلمة السر؟',
+                    style: AppStyle.labelSmall.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 30),
-          BlocBuilder<AuthCubit, AuthState>(
+          BlocBuilder<LoginCubit, LoginState>(
             builder: (context, state) {
               return CustomButton(
                 text: 'تسجيل الدخول',
-                isLoading: state is AuthLoading,
+                isLoading: state is LoginLoading,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    context.read<AuthCubit>().login(
-                          phoneNumber: phoneController.text.trim(),
-                          password: passwordController.text,
-                        );
+                    context.read<LoginCubit>().login(
+                      phoneNumber: phoneController.text.trim(),
+                      password: passwordController.text,
+                    );
                   }
                 },
               );

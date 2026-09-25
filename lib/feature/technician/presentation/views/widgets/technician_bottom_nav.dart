@@ -6,7 +6,10 @@ import 'tech_nav_item.dart';
 class TechnicianBottomNav extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
-  const TechnicianBottomNav({super.key, required this.navigationShell});
+  const TechnicianBottomNav({
+    super.key,
+    required this.navigationShell,
+  });
 
   void _onTap(int index) {
     navigationShell.goBranch(
@@ -19,7 +22,12 @@ class TechnicianBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.bgPage,
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16, top: 8),
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 20,
+        bottom: 16,
+        top: 8,
+      ),
       child: Container(
         height: 68,
         padding: const EdgeInsets.all(5),
@@ -47,9 +55,9 @@ class TechnicianBottomNav extends StatelessWidget {
             ),
             Expanded(
               child: TechNavItem(
-                icon: Icons.receipt_long_outlined,
-                activeIcon: Icons.receipt_long_rounded,
-                label: 'الفاتورة',
+                icon: Icons.person_outline,
+                activeIcon: Icons.person,
+                label: 'البروفايل والأرباح',
                 isSelected: navigationShell.currentIndex == 1,
                 onTap: () => _onTap(1),
               ),

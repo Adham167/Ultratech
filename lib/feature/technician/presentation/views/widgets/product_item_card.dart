@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_style.dart';
 
-class ProductItemCard extends StatefulWidget {
+class ProductItemCard extends StatelessWidget {
   final String name;
   final double price;
   final int availableCount;
   final bool isLowStock;
   final String? imageUrl;
+  final int count;
+  final ValueChanged<int>? onCountChanged;
 
   const ProductItemCard({
     super.key,
@@ -16,14 +18,9 @@ class ProductItemCard extends StatefulWidget {
     required this.availableCount,
     this.isLowStock = false,
     this.imageUrl,
+    this.count = 0,
+    this.onCountChanged,
   });
-
-  @override
-  State<ProductItemCard> createState() => _ProductItemCardState();
-}
-
-class _ProductItemCardState extends State<ProductItemCard> {
-  int count = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -42,94 +39,101 @@ class _ProductItemCardState extends State<ProductItemCard> {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                onPressed: () => setState(() => count++),
-                icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 26),
+                onPressed: () => onCountChanged?.call(count + 1),
+                icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 24),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 6.0),
                 child: Text(
                   '$count',
                   style: AppStyle.labelMedium.copyWith(fontSize: 14),
                 ),
               ),
               IconButton(
-                onPressed: count > 0 ? () => setState(() => count--) : null,
+                onPressed: count > 0 ? () => onCountChanged?.call(count - 1) : null,
                 icon: Icon(
                   Icons.remove_circle_outline,
                   color: count > 0 ? AppColors.textMuted : AppColors.borderDisabled,
-                  size: 26,
+                  size: 24,
                 ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
             ],
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Expanded(
-            flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  widget.name,
+                  name,
                   textAlign: TextAlign.right,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppStyle.labelMedium.copyWith(fontSize: 13),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '${widget.price.toInt()} ج.م',
-                  style: AppStyle.labelMedium.copyWith(
-                    fontSize: 13,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: widget.isLowStock ? AppColors.bgError : AppColors.bgSuccess,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'المتوفر: ${widget.availableCount}',
-                    style: AppStyle.labelMedium.copyWith(
-                      fontSize: 10,
-                      color: widget.isLowStock ? AppColors.coral : AppColors.success,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isLowStock ? AppColors.bgError : AppColors.bgSuccess,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'المتوفر: $availableCount',
+                        style: AppStyle.labelMedium.copyWith(
+                          fontSize: 10,
+                          color: isLowStock ? AppColors.coral : AppColors.success,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${price.toInt()} ج.م',
+                      style: AppStyle.labelMedium.copyWith(
+                        fontSize: 13,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              width: 60,
-              height: 60,
+              width: 50,
+              height: 50,
               color: AppColors.bgLight,
-              child: widget.imageUrl != null
+              child: imageUrl != null
                   ? Image.network(
-                      widget.imageUrl!,
+                      imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (context, error, stackTrace) => const Icon(
                         Icons.build_rounded,
                         color: AppColors.textHint,
-                        size: 28,
+                        size: 24,
                       ),
                     )
                   : const Icon(
                       Icons.build_rounded,
                       color: AppColors.textHint,
-                      size: 28,
+                      size: 24,
                     ),
             ),
           ),
@@ -139,15 +143,29 @@ class _ProductItemCardState extends State<ProductItemCard> {
   }
 }
 
-class InvoiceSummaryCard extends StatefulWidget {
-  const InvoiceSummaryCard({super.key});
+class InvoiceSummaryCard extends StatelessWidget {
+  final num productsCost;
+  final num laborCost;
+  final num totalAmount;
+  final TextEditingController? laborCostController;
+  final ValueChanged<String>? onLaborCostChanged;
+  final bool isPaid;
+  final ValueChanged<bool>? onPaidChanged;
+  final VoidCallback? onSubmit;
+  final bool isLoading;
 
-  @override
-  State<InvoiceSummaryCard> createState() => _InvoiceSummaryCardState();
-}
-
-class _InvoiceSummaryCardState extends State<InvoiceSummaryCard> {
-  bool isPaid = false;
+  const InvoiceSummaryCard({
+    super.key,
+    this.productsCost = 0,
+    this.laborCost = 0,
+    this.totalAmount = 0,
+    this.laborCostController,
+    this.onLaborCostChanged,
+    this.isPaid = false,
+    this.onPaidChanged,
+    this.onSubmit,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -164,8 +182,10 @@ class _InvoiceSummaryCardState extends State<InvoiceSummaryCard> {
           const Text('تكلفة التركيب والمصنعية', style: AppStyle.labelSmall),
           const SizedBox(height: 6),
           TextField(
+            controller: laborCostController,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.right,
+            onChanged: onLaborCostChanged,
             decoration: InputDecoration(
               hintText: '250',
               suffixIcon: const Padding(
@@ -184,19 +204,19 @@ class _InvoiceSummaryCardState extends State<InvoiceSummaryCard> {
             ),
           ),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('0 ج.م', style: AppStyle.headingSmall),
-              Text('إجمالي المنتجات', style: AppStyle.labelSmall),
+              Text('$productsCost ج.م', style: AppStyle.headingSmall),
+              const Text('إجمالي المنتجات', style: AppStyle.labelSmall),
             ],
           ),
           const SizedBox(height: 6),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('250 ج.م', style: AppStyle.headingSmall),
-              Text('المصنعية', style: AppStyle.labelSmall),
+              Text('$laborCost ج.م', style: AppStyle.headingSmall),
+              const Text('المصنعية', style: AppStyle.labelSmall),
             ],
           ),
           const Divider(height: 20, color: AppColors.bgPage),
@@ -204,7 +224,7 @@ class _InvoiceSummaryCardState extends State<InvoiceSummaryCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '250 ج.م',
+                '$totalAmount ج.م',
                 style: AppStyle.headingSmall.copyWith(color: AppColors.primary),
               ),
               const Text('الإجمالي النهائي', style: AppStyle.headingSmall),
@@ -225,8 +245,8 @@ class _InvoiceSummaryCardState extends State<InvoiceSummaryCard> {
               children: [
                 Switch(
                   value: isPaid,
-                  activeColor: AppColors.success,
-                  onChanged: (val) => setState(() => isPaid = val),
+                  activeThumbColor: AppColors.success,
+                  onChanged: onPaidChanged,
                 ),
                 Text(
                   'تم استلام المبلغ نقداً',
@@ -242,13 +262,19 @@ class _InvoiceSummaryCardState extends State<InvoiceSummaryCard> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: isLoading ? null : onSubmit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: isPaid ? AppColors.coral : AppColors.coral.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
-              child: const Text('إنهاء العمل والإغلاق', style: AppStyle.button),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Text('إنهاء العمل والإغلاق', style: AppStyle.button),
             ),
           ),
         ],

@@ -32,13 +32,13 @@ class _SplashViewState extends State<SplashView> {
 
     if (!mounted) return;
 
-    if (token == null || token.isEmpty) {
+    // if (token == null || token.isEmpty) {
       context.go(AppRouter.kLoginView);
-    } else {
-      final bool isApproved = isApprovedStr == 'true';
-      final int roleId = int.tryParse(roleStr ?? '') ?? 3;
-      AuthHelper.handleAuthNavigation(context, roleId: roleId, isApproved: isApproved);
-    }
+    // } else {
+    //   final bool isApproved = isApprovedStr == 'true';
+    //   final int roleId = int.tryParse(roleStr ?? '') ?? 3;
+    //   AuthHelper.handleAuthNavigation(context, roleId: roleId, isApproved: isApproved);
+    // }
   }
 
   @override

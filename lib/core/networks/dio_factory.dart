@@ -36,6 +36,9 @@ class DioFactory {
     dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
+          if (options.path.contains(ApiConstants.refreshToken)) {
+            return handler.next(options);
+          }
           String? token = await _secureStorage.read(key: 'token');
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -44,51 +47,61 @@ class DioFactory {
         },
         onError: (DioException error, handler) async {
           if (error.response?.statusCode == 401) {
+            // Check if token was already refreshed by another concurrent request
+            String? currentToken = await _secureStorage.read(key: 'token');
+            String? requestToken = error.requestOptions.headers['Authorization']
+                ?.toString()
+                .replaceFirst('Bearer ', '');
+
+            if (currentToken != null &&
+                currentToken.isNotEmpty &&
+                currentToken != requestToken) {
+              // Token has been updated, retry with the new one
+              error.requestOptions.headers['Authorization'] =
+                  'Bearer $currentToken';
+              try {
+                final response = await _retry(error.requestOptions, dio);
+                return handler.resolve(response);
+              } catch (e) {
+                return handler.next(error);
+              }
+            }
+
             String? refreshToken = await _secureStorage.read(key: 'refreshToken');
             if (refreshToken != null) {
               try {
-                // محاولة تجديد التوكن
                 final response = await dio.post(
                   ApiConstants.refreshToken,
                   data: {'refreshToken': refreshToken},
                 );
 
-                if (response.statusCode == 200 && response.data['succeeded'] == true) {
+                if (response.statusCode == 200 &&
+                    response.data['succeeded'] == true) {
                   final newData = response.data['data'];
                   final newToken = newData['token'];
                   final newRefreshToken = newData['refreshToken'];
 
-                  // حفظ البيانات الجديدة
                   await _secureStorage.write(key: 'token', value: newToken);
-                  await _secureStorage.write(key: 'refreshToken', value: newRefreshToken);
+                  await _secureStorage.write(
+                      key: 'refreshToken', value: newRefreshToken);
                   if (newData['role'] != null) {
-                    await _secureStorage.write(key: 'role', value: newData['role'].toString());
+                    await _secureStorage.write(
+                        key: 'role', value: newData['role'].toString());
                   }
                   if (newData['isApproved'] != null) {
-                    await _secureStorage.write(key: 'isApproved', value: newData['isApproved'].toString());
+                    await _secureStorage.write(
+                        key: 'isApproved', value: newData['isApproved'].toString());
                   }
 
-                  // تحديث الهيدر وإعادة الطلب الأصلي
-                  error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
-                  final opts = Options(
-                    method: error.requestOptions.method,
-                    headers: error.requestOptions.headers,
-                  );
-                  final retryResponse = await dio.request(
-                    error.requestOptions.path,
-                    options: opts,
-                    data: error.requestOptions.data,
-                    queryParameters: error.requestOptions.queryParameters,
-                  );
+                  error.requestOptions.headers['Authorization'] =
+                      'Bearer $newToken';
+                  final retryResponse = await _retry(error.requestOptions, dio);
                   return handler.resolve(retryResponse);
                 }
               } catch (e) {
-                // فشل تجديد التوكن (مثلاً ريفريش توكن منتهي)
                 await _secureStorage.deleteAll();
-                
-                // توجيه المستخدم لصفحة تسجيل الدخول
-                // نستخدم الـ navigatorKey الموجود في AppRouter للوصول للـ context خارج الـ widgets
                 AppRouter.router.go(AppRouter.kLoginView);
+                return handler.reject(error); // Ensure handler is not stuck
               }
             }
           }
@@ -98,5 +111,19 @@ class DioFactory {
     );
 
     return dio;
+  }
+
+  Future<Response<dynamic>> _retry(
+      RequestOptions requestOptions, Dio dio) async {
+    final options = Options(
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+    );
+    return dio.request(
+      requestOptions.path,
+      options: options,
+      data: requestOptions.data,
+      queryParameters: requestOptions.queryParameters,
+    );
   }
 }

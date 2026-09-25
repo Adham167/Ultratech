@@ -1,12 +1,44 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_style.dart';
+import '../../../data/models/order_model.dart';
 
 class ActiveOrderCard extends StatelessWidget {
-  const ActiveOrderCard({super.key});
+  final OrderModel? order;
+  final String? customerName;
+  final String? orderNumber;
+  final String? address;
+  final String? area;
+  final String? phone;
+  final String? time;
+  final String? serviceType;
+  final VoidCallback? onAccept;
+  final VoidCallback? onReject;
+
+  const ActiveOrderCard({
+    super.key,
+    this.order,
+    this.customerName,
+    this.orderNumber,
+    this.address,
+    this.area,
+    this.phone,
+    this.time,
+    this.serviceType,
+    this.onAccept,
+    this.onReject,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final displayArea = order?.areaName ?? area ?? 'التجمع الخامس';
+    final displayOrderNum = order?.orderNumber ?? orderNumber ?? 'JO-8834';
+    final displayName = order?.customerName ?? customerName ?? 'نور الدين';
+    final displayAddress = order?.customerAddress ?? address ?? '23 كمبوند صان رايز، فيلا 5';
+    final displayPhone = order?.customerPhone ?? phone ?? '0106 778 0221';
+    final displayNotes = order?.notes ?? serviceType ?? 'التكييف لا يبرد — فحص وإصلاح';
+    final displayTime = time ?? 'اليوم 2:00 - 4:00 مساءً';
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.bgCard,
@@ -37,7 +69,7 @@ class ActiveOrderCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'التجمع الخامس',
+                        displayArea,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppStyle.labelMedium.copyWith(
@@ -51,7 +83,7 @@ class ActiveOrderCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Flexible(
                   child: Text(
-                    'أوردر JO-8834',
+                    'أوردر $displayOrderNum',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.right,
@@ -69,28 +101,28 @@ class ActiveOrderCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Text(
-                  'نور الدين',
+                Text(
+                  displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppStyle.headingSmall,
                 ),
                 const SizedBox(height: 4),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
                       child: Text(
-                        '23 كمبوند صان رايز، فيلا 5',
+                        displayAddress,
                         textAlign: TextAlign.right,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppStyle.bodySmall,
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(
+                    const SizedBox(width: 4),
+                    const Icon(
                       Icons.location_on_outlined,
                       size: 14,
                       color: AppColors.textMuted,
@@ -98,8 +130,8 @@ class ActiveOrderCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '0106 778 0221',
+                Text(
+                  displayPhone,
                   textDirection: TextDirection.ltr,
                   style: AppStyle.bodySmall,
                 ),
@@ -126,7 +158,7 @@ class ActiveOrderCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'اليوم 2:00 - 4:00 مساءً',
+                                displayTime,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: AppStyle.labelMedium.copyWith(
@@ -139,9 +171,9 @@ class ActiveOrderCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Flexible(
+                      Flexible(
                         child: Text(
-                          'التكييف لا يبرد — فحص وإصلاح',
+                          displayNotes,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.right,
@@ -156,7 +188,7 @@ class ActiveOrderCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: onReject,
                         icon: const Icon(
                           Icons.cancel_outlined,
                           size: 16,
@@ -181,7 +213,7 @@ class ActiveOrderCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: onAccept,
                         icon: const Icon(
                           Icons.arrow_back_rounded,
                           size: 16,

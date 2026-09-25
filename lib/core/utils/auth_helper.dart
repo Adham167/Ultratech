@@ -13,7 +13,7 @@ class AuthHelper {
       case 1: // CEO
       case 2: // Accountant
       case 3: // Sales
-        context.go(AppRouter.kMaintenanceDutiesView);
+        context.go(AppRouter.kSalesDashboard);
         break;
       case 4: // Technical
         context.go(AppRouter.kTechnicianOrdersView);

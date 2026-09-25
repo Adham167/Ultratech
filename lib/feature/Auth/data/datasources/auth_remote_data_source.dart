@@ -35,7 +35,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     );
     return AuthResponseModel.fromJson(
       response,
-      (data) => data as String,
+      (data) => data as String??'',
     );
   }
 }

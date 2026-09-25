@@ -1,71 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_style.dart';
+import '../../../data/models/invoice_model.dart';
+import '../../manager/orders_cubit/technician_orders_cubit.dart';
+import '../../manager/orders_cubit/technician_orders_state.dart';
 import 'archive_invoice_card.dart';
 
 class TechnicianArchiveViewBody extends StatefulWidget {
   const TechnicianArchiveViewBody({super.key});
 
   @override
-  State<TechnicianArchiveViewBody> createState() => _TechnicianArchiveViewBodyState();
+  State<TechnicianArchiveViewBody> createState() =>
+      _TechnicianArchiveViewBodyState();
 }
 
-class _TechnicianArchiveViewBodyState extends State<TechnicianArchiveViewBody> {
-  String _selectedFilter = 'الكل';
+class _TechnicianArchiveViewBodyState
+    extends State<TechnicianArchiveViewBody> {
+  int? _selectedStatusFilter;
   String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> _allInvoices = [
-    {
-      'customerName': 'أميرة حسن',
-      'orderId': 'JO-8790',
-      'date': '14 سبتمبر',
-      'price': '1,240 ج.م',
-      'area': 'التجمع الخامس',
-      'isConfirmed': true,
-    },
-    {
-      'customerName': 'يوسف عادل',
-      'orderId': 'JO-8788',
-      'date': '14 سبتمبر',
-      'price': '680 ج.م',
-      'area': 'المعادي',
-      'isConfirmed': false,
-    },
-    {
-      'customerName': 'سلمى فاروق',
-      'orderId': 'JO-8781',
-      'date': '13 سبتمبر',
-      'price': '1,590 ج.م',
-      'area': '6 أكتوبر',
-      'isConfirmed': true,
-    },
-    {
-      'customerName': 'كريم نبيل',
-      'orderId': 'JO-8775',
-      'date': '12 سبتمبر',
-      'price': '430 ج.م',
-      'area': 'مدينة نصر',
-      'isConfirmed': false,
-    },
-  ];
+  final TextEditingController _searchController =
+      TextEditingController();
 
-  List<Map<String, dynamic>> get _filteredInvoices {
-    return _allInvoices.where((invoice) {
-      bool matchesFilter = true;
-      if (_selectedFilter == 'مؤكدة') {
-        matchesFilter = invoice['isConfirmed'] == true;
-      } else if (_selectedFilter == 'قيد التأكيد') {
-        matchesFilter = invoice['isConfirmed'] == false;
-      }
+  @override
+  void initState() {
+    super.initState();
 
-      final query = _searchQuery.trim().toLowerCase();
-      final matchesSearch = query.isEmpty ||
-          invoice['customerName'].toString().toLowerCase().contains(query) ||
-          invoice['orderId'].toString().toLowerCase().contains(query);
-
-      return matchesFilter && matchesSearch;
-    }).toList();
+    context.read<TechnicianOrdersCubit>().getMyInvoices(
+          status: _selectedStatusFilter,
+        );
   }
 
   @override
@@ -74,118 +40,253 @@ class _TechnicianArchiveViewBodyState extends State<TechnicianArchiveViewBody> {
     super.dispose();
   }
 
+  void _onFilterSelected(int? statusValue) {
+    setState(() {
+      _selectedStatusFilter = statusValue;
+    });
+
+    context.read<TechnicianOrdersCubit>().getMyInvoices(
+          status: statusValue,
+        );
+  }
+
+  void _openInvoiceDetails(int invoiceId) {
+    if (invoiceId > 0) {
+      context.push(
+        '/technician-invoice-details/$invoiceId',
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filteredList = _filteredInvoices;
-
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const Text(
-              'أرشيف الفواتير',
-              style: AppStyle.headingLarge,
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'الأوردرات المنتهية وحالة تأكيد المحاسب.',
-              style: AppStyle.bodySmall,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _searchController,
-              textAlign: TextAlign.right,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'ابحث برقم الأوردر أو اسم العميل',
-                hintStyle: AppStyle.hint,
-                prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                fillColor: AppColors.bgCard,
-                filled: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderSubtle),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary),
-                ),
+      child: BlocBuilder<TechnicianOrdersCubit, TechnicianOrdersState>(
+        builder: (context, state) {
+          final cubit = context.read<TechnicianOrdersCubit>();
+          final invoices = cubit.cachedInvoices;
+
+          final query = _searchQuery.trim().toLowerCase();
+
+          final filteredInvoices = invoices.where((invoice) {
+            final matchesQuery = query.isEmpty ||
+                (invoice.customerName?.toLowerCase().contains(query) ?? false) ||
+                (invoice.orderNumber?.toLowerCase().contains(query) ?? false) ||
+                (invoice.invoiceNumber?.toLowerCase().contains(query) ?? false) ||
+                invoice.invoiceId.toString().contains(query);
+
+            bool matchesFilter = true;
+            if (_selectedStatusFilter != null) {
+              if (_selectedStatusFilter == 1) {
+                matchesFilter = (invoice.status == 1);
+              } else if (_selectedStatusFilter == 2) {
+                matchesFilter = (invoice.status == 2);
+              } else if (_selectedStatusFilter == 4 || _selectedStatusFilter == 3) {
+                matchesFilter = (invoice.status == 4 ||
+                    invoice.status == 3 ||
+                    (invoice.statusText != null &&
+                        invoice.statusText!.trim().toLowerCase() == 'rejected'));
+              }
+            }
+
+            return matchesQuery && matchesFilter;
+          }).toList();
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              await cubit.getMyInvoices(
+                status: _selectedStatusFilter,
+                showLoading: false,
+              );
+            },
+            color: AppColors.primary,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 20,
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _buildFilterChip('مؤكدة'),
-                const SizedBox(width: 8),
-                _buildFilterChip('قيد التأكيد'),
-                const SizedBox(width: 8),
-                _buildFilterChip('الكل'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (filteredList.isEmpty)
-              const SizedBox(
-                height: 200,
-                child: Center(
-                  child: Text(
-                    'لا توجد فواتير مطابقة للبحث',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'أرشيف الفواتير',
+                    style: AppStyle.headingLarge,
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'سجل الفواتير المنتهية وحالة اعتماد المحاسب.',
                     style: AppStyle.bodySmall,
                   ),
-                ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredList.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final item = filteredList[index];
-                  return ArchiveInvoiceCard(
-                    customerName: item['customerName'] as String,
-                    orderId: item['orderId'] as String,
-                    date: item['date'] as String,
-                    price: item['price'] as String,
-                    area: item['area'] as String,
-                    isConfirmed: item['isConfirmed'] as bool,
-                  );
-                },
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _searchController,
+                    textAlign: TextAlign.right,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText:
+                          'ابحث برقم الفاتورة أو الأوردر أو اسم العميل...',
+                      hintStyle: AppStyle.hint,
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textMuted,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.clear,
+                                size: 18,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      fillColor: AppColors.bgCard,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderSubtle,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    reverse: true,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _buildFilterChip(
+                          label: 'مرفوضة',
+                          statusValue: 4,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: 'معتمدة',
+                          statusValue: 2,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: 'معلقة',
+                          statusValue: 1,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: 'الكل',
+                          statusValue: null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (state is TechnicianInvoicesLoading && invoices.isEmpty)
+                    const SizedBox(
+                      height: 250,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    )
+                  else if (filteredInvoices.isEmpty)
+                    SizedBox(
+                      height: 220,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.receipt_long_outlined,
+                              size: 48,
+                              color: AppColors.borderDisabled,
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'لا توجد فواتير مطابقة في الأرشيف',
+                              style: AppStyle.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredInvoices.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final invoice = filteredInvoices[index];
+                        final status = _getInvoiceStatus(invoice);
+
+                        return ArchiveInvoiceCard(
+                          customerName:
+                              invoice.customerName ?? 'عميل بدون اسم',
+                          orderId: (invoice.orderNumber != null && invoice.orderNumber!.isNotEmpty)
+                              ? invoice.orderNumber!
+                              : '#${invoice.orderId ?? invoice.invoiceId}',
+                          date: invoice.createdAt ?? '',
+                          price: '${invoice.totalAmount} ج.م',
+                          area: invoice.areaName ?? '',
+                          status: status,
+                          rejectionReason: invoice.rejectionReason,
+                          onTap: () {
+                            _openInvoiceDetails(
+                              invoice.invoiceId,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                ],
               ),
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _selectedFilter == label;
+  int _getInvoiceStatus(InvoiceModel invoice) {
+    return invoice.status ?? 1;
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required int? statusValue,
+  }) {
+    final isSelected = _selectedStatusFilter == statusValue;
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = label;
-        });
-      },
+      onTap: () => _onFilterSelected(statusValue),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 7,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.bgCard,
           borderRadius: BorderRadius.circular(10),

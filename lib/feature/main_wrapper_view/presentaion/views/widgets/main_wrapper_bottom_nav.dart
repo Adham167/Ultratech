@@ -55,6 +55,15 @@ class MainWrapperBottomNav extends StatelessWidget {
                 onTap: () => _onTap(1),
               ),
             ),
+            Expanded(
+              child: NavItem(
+                icon: Icons.person_outline,
+                activeIcon: Icons.person,
+                label: 'البروفايل والأرباح',
+                isSelected: navigationShell.currentIndex == 2,
+                onTap: () => _onTap(2),
+              ),
+            ),
           ],
         ),
       ),

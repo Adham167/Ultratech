@@ -4,8 +4,8 @@ import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/app_validator.dart';
 import '../../../../../core/utils/user_role.dart';
-import '../../manager/auth_cubit.dart';
-import '../../manager/auth_state.dart';
+import '../../manager/register_cubit/register_cubit.dart';
+import '../../manager/register_cubit/register_state.dart';
 import 'auth_form_card.dart';
 import 'custom_button.dart';
 import 'custom_text_field.dart';
@@ -23,6 +23,9 @@ class _SignUpFormState extends State<SignUpForm> {
   late final TextEditingController emailController;
   late final TextEditingController phoneController;
   late final TextEditingController passwordController;
+  late final TextEditingController confirmPasswordController;
+  bool _isPasswordObscure = true;
+  bool _isConfirmPasswordObscure = true;
   UserRole selectedRole = UserRole.sales;
 
   final List<UserRole> roles = [
@@ -37,6 +40,7 @@ class _SignUpFormState extends State<SignUpForm> {
     emailController = TextEditingController();
     phoneController = TextEditingController();
     passwordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
   }
 
   @override
@@ -45,6 +49,7 @@ class _SignUpFormState extends State<SignUpForm> {
     emailController.dispose();
     phoneController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -93,8 +98,54 @@ class _SignUpFormState extends State<SignUpForm> {
                 controller: passwordController,
                 hintText: '********',
                 prefixIcon: Icons.lock_outline,
-                obscureText: true,
+                obscureText: _isPasswordObscure,
                 validator: AppValidator.validatePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordObscure
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.textMuted,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordObscure = !_isPasswordObscure;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text('تأكيد كلمة السر', style: AppStyle.labelMedium),
+              const SizedBox(height: 8),
+              CustomTextField(
+                controller: confirmPasswordController,
+                hintText: '********',
+                prefixIcon: Icons.lock_outline,
+                obscureText: _isConfirmPasswordObscure,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'برجاء تأكيد كلمة السر';
+                  }
+                  if (value != passwordController.text) {
+                    return 'كلمة السر غير متطابقة';
+                  }
+                  return null;
+                },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isConfirmPasswordObscure
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.textMuted,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isConfirmPasswordObscure = !_isConfirmPasswordObscure;
+                    });
+                  },
+                ),
               ),
               const SizedBox(height: 20),
               const Text('نوع الوظيفة / Role', style: AppStyle.labelMedium),
@@ -103,20 +154,20 @@ class _SignUpFormState extends State<SignUpForm> {
             ],
           ),
           const SizedBox(height: 30),
-          BlocBuilder<AuthCubit, AuthState>(
+          BlocBuilder<RegisterCubit, RegisterState>(
             builder: (context, state) {
               return CustomButton(
                 text: 'تسجيل حساب جديد',
-                isLoading: state is AuthLoading,
+                isLoading: state is RegisterLoading,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    context.read<AuthCubit>().register(
-                          fullName: fullNameController.text.trim(),
-                          email: emailController.text.trim(),
-                          phoneNumber: phoneController.text.trim(),
-                          password: passwordController.text,
-                          role: selectedRole,
-                        );
+                    context.read<RegisterCubit>().register(
+                      fullName: fullNameController.text.trim(),
+                      email: emailController.text.trim(),
+                      phoneNumber: phoneController.text.trim(),
+                      password: passwordController.text,
+                      role: selectedRole,
+                    );
                   }
                 },
               );
@@ -134,7 +185,7 @@ class _SignUpFormState extends State<SignUpForm> {
         prefixIcon: const Icon(Icons.badge_outlined, size: 20, color: AppColors.primary),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         filled: true,
-        fillColor: AppColors.bgPage.withOpacity(0.3),
+        fillColor: AppColors.bgPage.withValues(alpha: 0.3),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.borderSubtle),

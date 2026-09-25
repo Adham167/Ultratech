@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_router.dart';
 import '../../../../core/utils/service_locator.dart';
-import '../manager/auth_cubit.dart';
-import '../manager/auth_state.dart';
+import '../manager/register_cubit/register_cubit.dart';
+import '../manager/register_cubit/register_state.dart';
 import 'widgets/sign_up_view_body.dart';
 
 class SignUpView extends StatelessWidget {
@@ -16,8 +16,8 @@ class SignUpView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.bgPage,
       body: BlocProvider(
-        create: (context) => getIt<AuthCubit>(),
-        child: BlocListener<AuthCubit, AuthState>(
+        create: (context) => getIt<RegisterCubit>(),
+        child: BlocListener<RegisterCubit, RegisterState>(
           listener: (context, state) {
             if (state is RegisterSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -27,7 +27,7 @@ class SignUpView extends StatelessWidget {
                 ),
               );
               context.go(AppRouter.kPendingApprovalView);
-            } else if (state is AuthFailure) {
+            } else if (state is RegisterFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.errMessage),

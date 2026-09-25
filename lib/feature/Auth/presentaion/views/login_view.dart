@@ -5,8 +5,8 @@ import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_router.dart';
 import '../../../../core/utils/auth_helper.dart';
 import '../../../../core/utils/service_locator.dart';
-import '../manager/auth_cubit.dart';
-import '../manager/auth_state.dart';
+import '../manager/login_cubit/login_cubit.dart';
+import '../manager/login_cubit/login_state.dart';
 import 'widgets/login_view_body.dart';
 
 class LoginView extends StatelessWidget {
@@ -17,10 +17,10 @@ class LoginView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.bgPage,
       body: BlocProvider(
-        create: (context) => getIt<AuthCubit>(),
-        child: BlocListener<AuthCubit, AuthState>(
+        create: (context) => getIt<LoginCubit>(),
+        child: BlocListener<LoginCubit, LoginState>(
           listener: (context, state) {
-            if (state is AuthSuccess) {
+            if (state is LoginSuccess) {
               AuthHelper.handleAuthNavigation(
                 context,
                 roleId: state.user.role,
@@ -34,7 +34,7 @@ class LoginView extends StatelessWidget {
                 ),
               );
               context.push(AppRouter.kPendingApprovalView);
-            } else if (state is AuthFailure) {
+            } else if (state is LoginFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.errMessage),
