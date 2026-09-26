@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/utils/app_colors.dart';
-import '../../../../core/utils/app_style.dart';
-import '../../domain/entities/maintenance_assigned_entity.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../../../../core/utils/app_style.dart';
+import '../../../domain/entities/maintenance_assigned_entity.dart';
 
 class MaintenanceCardWidget extends StatelessWidget {
   final MaintenanceAssignedEntity maintenance;
@@ -101,7 +101,7 @@ class MaintenanceCardWidget extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => _makePhoneCall(maintenance.customerPhone),
                   icon: const Icon(Icons.call, size: 18),
-                  label: const Text('اتصال', style: AppStyle.buttonSmall),
+                  label:  Text('اتصال', style: AppStyle.buttonSmall.copyWith(color: AppColors.primary)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.primary),

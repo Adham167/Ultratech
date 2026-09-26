@@ -35,7 +35,6 @@ class _TechnicianOrdersViewBodyState
       _selectedStatus = status;
     });
   }
-
   List<OrderModel> _filterOrders(List<OrderModel> orders) {
     if (_selectedStatus == null) {
       return orders;
@@ -44,20 +43,24 @@ class _TechnicianOrdersViewBodyState
     return orders.where((order) {
       switch (_selectedStatus) {
         case 1:
+        // جديد
           return order.status == 1;
 
         case 3:
-          return order.status == 2 || order.status == 3;
+        // جاري العمل
+          return order.status == 2 ||
+              order.status == 3 ||
+              order.status == 4;
 
         case 4:
-          return order.status == 4 || order.status == 5;
+        // مكتملة
+          return order.status == 5;
 
         default:
           return true;
       }
     }).toList();
   }
-
   String _sanitizeErrorMessage(String rawMessage) {
     final msg = rawMessage.trim();
 
@@ -221,11 +224,14 @@ class _TechnicianOrdersViewBodyState
 
                         return TechnicianOrderCard(
                           order: order,
-                          onTap: () {
-                            context.push(
+                          onTap: () async {
+                            await context.push(
                               AppRouter.kTechnicianOrderDetailsView,
                               extra: order,
                             );
+                            if (context.mounted) {
+                              context.read<TechnicianOrdersCubit>().getMyOrders(showLoading: false);
+                            }
                           },
                         );
                       },

@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ultra_tech/core/utils/service_locator.dart';
 import 'package:ultra_tech/feature/Auth/presentaion/views/forgot_password_view.dart';
+import 'package:ultra_tech/feature/Auth/presentaion/views/otp_verification_view.dart';
 import 'package:ultra_tech/feature/Auth/presentaion/views/login_view.dart';
 import 'package:ultra_tech/feature/Auth/presentaion/views/sign_up_view.dart';
+import 'package:ultra_tech/feature/Auth/presentaion/views/reset_password_view.dart';
 import 'package:ultra_tech/feature/Auth/presentaion/views/pending_approval_view.dart';
 import 'package:ultra_tech/feature/sales/presentation/views/create_order_view.dart';
 import 'package:ultra_tech/feature/sales/presentation/views/customer_profile_view.dart';
@@ -12,6 +14,7 @@ import 'package:ultra_tech/feature/sales/presentation/views/sales_order_details_
 import 'package:ultra_tech/feature/splash/presentain/views/splash_view.dart';
 import 'package:ultra_tech/feature/technician/data/models/order_model.dart';
 import 'package:ultra_tech/feature/technician/presentation/manager/orders_cubit/technician_orders_cubit.dart';
+import 'package:ultra_tech/feature/technician/presentation/views/complete_order_screen.dart';
 import 'package:ultra_tech/feature/technician/presentation/views/technician_order_details_view.dart';
 import 'package:ultra_tech/feature/technician/presentation/views/technician_wrapper_view.dart';
 import 'package:ultra_tech/feature/technician/presentation/views/technician_orders_view.dart';
@@ -20,6 +23,7 @@ import 'package:ultra_tech/feature/main_wrapper_view/presentaion/views/main_wrap
 import 'package:ultra_tech/feature/sales/presentation/views/sales_customer_onboarding_view.dart';
 import 'package:ultra_tech/feature/sales/presentation/views/maintenance_tab_view.dart';
 
+import '../../feature/sales/presentation/views/sales_profile_view.dart';
 import '../../feature/technician/presentation/views/technician_earnings_view.dart';
 import '../../feature/technician/presentation/views/technician_invoice_details_view.dart';
 
@@ -27,6 +31,8 @@ abstract class AppRouter {
   static const kLoginView = '/login';
   static const kSignUpView = '/sign-up';
   static const kForgotPasswordView = '/forgot-password';
+  static const kOtpVerificationView = '/otp-verification';
+  static const kResetPasswordView = '/reset-password';
   static const kPendingApprovalView = '/pending-approval';
   static const kSalesDashboard = '/register';
   static const kRegisterView = '/register';
@@ -42,6 +48,7 @@ abstract class AppRouter {
   static const kTechnicianArchiveView = '/technician-archive';
   static const kTechnicianEarningsView = '/technician-earnings';
   static const kTechnicianOrderDetailsView = '/technician-order-details';
+  static const kCompleteOrderScreen = '/complete-order';
   static const kTechnicianInvoiceDetailsView =
       '/technician-invoice-details/:id';
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -68,6 +75,25 @@ abstract class AppRouter {
       GoRoute(
         path: kForgotPasswordView,
         builder: (context, state) => const ForgotPasswordView(),
+      ),
+      GoRoute(
+        path: kOtpVerificationView,
+        builder: (context, state) {
+          final identifier = state.extra as String? ?? '';
+          return OtpVerificationView(identifier: identifier);
+        },
+      ),
+      GoRoute(
+        path: kResetPasswordView,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final identifier = extra['identifier'] as String? ?? '';
+          final otp = extra['otp'] as String? ?? '';
+          return ResetPasswordView(
+            identifier: identifier,
+            otp: otp,
+          );
+        },
       ),
       GoRoute(
         path: kPendingApprovalView,
@@ -100,7 +126,7 @@ abstract class AppRouter {
             routes: [
               GoRoute(
                 path: kSalesProfileView,
-                builder: (context, state) => const TechnicianEarningsView(),
+                builder: (context, state) => const SalesProfileView(),
               ),
             ],
           ),
@@ -187,6 +213,14 @@ abstract class AppRouter {
               order: order,
             ),
           );
+        },
+      ),
+
+      GoRoute(
+        path: AppRouter.kCompleteOrderScreen,
+        builder: (context, state) {
+          final order = state.extra as OrderModel;
+          return CompleteOrderScreen(order: order);
         },
       ),
 

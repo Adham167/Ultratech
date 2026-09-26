@@ -7,7 +7,7 @@ class OrderItemModel {
   final num unitRetailPrice;
   final num totalPrice;
 
-  OrderItemModel({
+  const OrderItemModel({
     required this.productId,
     this.productName,
     required this.quantity,
@@ -16,20 +16,20 @@ class OrderItemModel {
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
+    final productId = _parseInt(json['productId']);
+    final productName = json['productName']?.toString();
+    final quantity = _parseInt(json['quantity']);
+    final unitRetailPrice = _parseNum(json['unitRetailPrice']);
+    final totalPrice = json['totalPrice'] != null
+        ? _parseNum(json['totalPrice'])
+        : unitRetailPrice * quantity;
+
     return OrderItemModel(
-      productId: json['productId'] is int
-          ? json['productId']
-          : int.tryParse(json['productId']?.toString() ?? '0') ?? 0,
-      productName: json['productName']?.toString(),
-      quantity: json['quantity'] is int
-          ? json['quantity']
-          : int.tryParse(json['quantity']?.toString() ?? '0') ?? 0,
-      unitRetailPrice: json['unitRetailPrice'] is num
-          ? json['unitRetailPrice']
-          : num.tryParse(json['unitRetailPrice']?.toString() ?? '0') ?? 0,
-      totalPrice: json['totalPrice'] is num
-          ? json['totalPrice']
-          : num.tryParse(json['totalPrice']?.toString() ?? '0') ?? 0,
+      productId: productId,
+      productName: productName,
+      quantity: quantity,
+      unitRetailPrice: unitRetailPrice,
+      totalPrice: totalPrice,
     );
   }
 
@@ -42,8 +42,18 @@ class OrderItemModel {
       'totalPrice': totalPrice,
     };
   }
-}
 
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static num _parseNum(dynamic value) {
+    if (value is num) return value;
+    return num.tryParse(value?.toString() ?? '') ?? 0;
+  }
+}
 
 class OrderModel {
   final int id;
@@ -52,26 +62,40 @@ class OrderModel {
   final String typeText;
   final int status;
   final String statusText;
+
   final int customerId;
   final String customerName;
   final String customerPhone;
   final String customerAddress;
+
   final int areaId;
   final String areaName;
+
   final int technicianId;
   final String technicianName;
+
+  final int? salesId;
+  final String? salesName;
+
   final String? arrivedAt;
   final String? completedAt;
   final String? notes;
   final String createdAt;
+
   final int itemsCount;
   final num totalAmount;
+
   final int? invoiceId;
   final String? invoiceStatus;
+
+  final double? customerLatitude;
+  final double? customerLongitude;
+  final String? customerGoogleMapsUrl;
+
   final List<OrderItemModel> items;
   final InvoiceModel? invoice;
 
-  OrderModel({
+  const OrderModel({
     required this.id,
     required this.orderNumber,
     required this.type,
@@ -86,6 +110,8 @@ class OrderModel {
     required this.areaName,
     required this.technicianId,
     required this.technicianName,
+    this.salesId,
+    this.salesName,
     this.arrivedAt,
     this.completedAt,
     this.notes,
@@ -94,40 +120,65 @@ class OrderModel {
     required this.totalAmount,
     this.invoiceId,
     this.invoiceStatus,
+    this.customerLatitude,
+    this.customerLongitude,
+    this.customerGoogleMapsUrl,
     required this.items,
     this.invoice,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    final rawItems = json['items'];
+
+    final List<OrderItemModel> parsedItems = (rawItems is List && rawItems.isNotEmpty)
+        ? rawItems
+            .whereType<Map>()
+            .map(
+              (item) => OrderItemModel.fromJson(
+                Map<String, dynamic>.from(item),
+              ),
+            )
+            .toList()
+        : <OrderItemModel>[];
+
+    InvoiceModel? parsedInvoice;
+    final rawInvoice = json['invoice'];
+    if (rawInvoice is Map && rawInvoice.isNotEmpty) {
+      parsedInvoice = InvoiceModel.fromJson(
+        Map<String, dynamic>.from(rawInvoice),
+      );
+    }
+
     return OrderModel(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      id: _parseInt(json['id']),
       orderNumber: json['orderNumber']?.toString() ?? '',
-      type: json['type'] is int ? json['type'] : int.tryParse(json['type']?.toString() ?? '0') ?? 0,
+      type: _parseInt(json['type']),
       typeText: json['typeText']?.toString() ?? '',
-      status: json['status'] is int ? json['status'] : int.tryParse(json['status']?.toString() ?? '0') ?? 0,
+      status: _parseInt(json['status']),
       statusText: json['statusText']?.toString() ?? '',
-      customerId: json['customerId'] is int ? json['customerId'] : int.tryParse(json['customerId']?.toString() ?? '0') ?? 0,
+      customerId: _parseInt(json['customerId']),
       customerName: json['customerName']?.toString() ?? '',
       customerPhone: json['customerPhone']?.toString() ?? '',
       customerAddress: json['customerAddress']?.toString() ?? '',
-      areaId: json['areaId'] is int ? json['areaId'] : int.tryParse(json['areaId']?.toString() ?? '0') ?? 0,
+      areaId: _parseInt(json['areaId']),
       areaName: json['areaName']?.toString() ?? '',
-      technicianId: json['technicianId'] is int ? json['technicianId'] : int.tryParse(json['technicianId']?.toString() ?? '0') ?? 0,
+      technicianId: _parseInt(json['technicianId']),
       technicianName: json['technicianName']?.toString() ?? '',
+      salesId: json['salesId'] != null ? _parseInt(json['salesId']) : null,
+      salesName: json['salesName']?.toString(),
       arrivedAt: json['arrivedAt']?.toString(),
       completedAt: json['completedAt']?.toString(),
       notes: json['notes']?.toString(),
       createdAt: json['createdAt']?.toString() ?? '',
-      itemsCount: json['itemsCount'] is int ? json['itemsCount'] : int.tryParse(json['itemsCount']?.toString() ?? '0') ?? 0,
-      totalAmount: json['totalAmount'] is num ? json['totalAmount'] : num.tryParse(json['totalAmount']?.toString() ?? '0') ?? 0,
-      invoiceId: json['invoiceId'] != null ? (json['invoiceId'] is int ? json['invoiceId'] : int.tryParse(json['invoiceId'].toString())) : null,
+      itemsCount: json['itemsCount'] != null ? _parseInt(json['itemsCount']) : 0,
+      totalAmount: json['totalAmount'] != null ? _parseNum(json['totalAmount']) : 0,
+      invoiceId: json['invoiceId'] != null ? _parseInt(json['invoiceId']) : null,
       invoiceStatus: json['invoiceStatus']?.toString(),
-      items: json['items'] != null && json['items'] is List
-          ? (json['items'] as List).map((i) => OrderItemModel.fromJson(i as Map<String, dynamic>)).toList()
-          : [],
-      invoice: json['invoice'] != null && json['invoice'] is Map<String, dynamic>
-          ? InvoiceModel.fromJson(json['invoice'] as Map<String, dynamic>)
-          : null,
+      customerLatitude: json['customerLatitude'] != null ? _parseDouble(json['customerLatitude']) : null,
+      customerLongitude: json['customerLongitude'] != null ? _parseDouble(json['customerLongitude']) : null,
+      customerGoogleMapsUrl: json['customerGoogleMapsUrl']?.toString(),
+      items: parsedItems,
+      invoice: parsedInvoice,
     );
   }
 
@@ -147,6 +198,8 @@ class OrderModel {
       'areaName': areaName,
       'technicianId': technicianId,
       'technicianName': technicianName,
+      'salesId': salesId,
+      'salesName': salesName,
       'arrivedAt': arrivedAt,
       'completedAt': completedAt,
       'notes': notes,
@@ -155,8 +208,27 @@ class OrderModel {
       'totalAmount': totalAmount,
       'invoiceId': invoiceId,
       'invoiceStatus': invoiceStatus,
-      'items': items.map((e) => e.toJson()).toList(),
+      'customerLatitude': customerLatitude,
+      'customerLongitude': customerLongitude,
+      'customerGoogleMapsUrl': customerGoogleMapsUrl,
+      'items': items.map((item) => item.toJson()).toList(),
       'invoice': invoice?.toJson(),
     };
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static num _parseNum(dynamic value) {
+    if (value is num) return value;
+    return num.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static double? _parseDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '');
   }
 }

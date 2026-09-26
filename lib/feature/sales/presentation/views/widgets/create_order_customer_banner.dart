@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/utils/app_colors.dart';
-import '../../../../../core/utils/app_style.dart';
 
 class CreateOrderCustomerBanner extends StatelessWidget {
   final int customerId;

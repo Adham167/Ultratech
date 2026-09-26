@@ -2,7 +2,7 @@ class CompleteOrderItemModel {
   final int productId;
   final int quantity;
 
-  CompleteOrderItemModel({
+  const CompleteOrderItemModel({
     required this.productId,
     required this.quantity,
   });
@@ -14,15 +14,21 @@ class CompleteOrderItemModel {
     };
   }
 
-  factory CompleteOrderItemModel.fromJson(Map<String, dynamic> json) {
+  factory CompleteOrderItemModel.fromJson(
+      Map<String, dynamic> json,
+      ) {
     return CompleteOrderItemModel(
-      productId: json['productId'] is int
-          ? json['productId']
-          : int.tryParse(json['productId']?.toString() ?? '0') ?? 0,
-      quantity: json['quantity'] is int
-          ? json['quantity']
-          : int.tryParse(json['quantity']?.toString() ?? '0') ?? 0,
+      productId: _parseInt(json['productId']),
+      quantity: _parseInt(json['quantity']),
     );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+
+    if (value is num) return value.toInt();
+
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }
 
@@ -32,7 +38,7 @@ class CompleteOrderRequestModel {
   final List<CompleteOrderItemModel> items;
   final String? notes;
 
-  CompleteOrderRequestModel({
+  const CompleteOrderRequestModel({
     required this.laborCost,
     required this.paymentMethod,
     required this.items,
@@ -43,7 +49,7 @@ class CompleteOrderRequestModel {
     return {
       'laborCost': laborCost,
       'paymentMethod': paymentMethod,
-      'items': items.map((i) => i.toJson()).toList(),
+      'items': items.map((item) => item.toJson()).toList(),
       'notes': notes ?? '',
     };
   }

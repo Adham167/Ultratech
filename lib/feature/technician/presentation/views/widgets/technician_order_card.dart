@@ -7,23 +7,30 @@ class TechnicianOrderCard extends StatelessWidget {
   final OrderModel order;
   final VoidCallback? onTap;
 
-  const TechnicianOrderCard({
-    super.key,
-    required this.order,
-    this.onTap,
-  });
+  const TechnicianOrderCard({super.key, required this.order, this.onTap});
 
   Color _getStatusColor(int status) {
     switch (status) {
       case 1:
+        // جديد
         return AppColors.warning;
+
       case 2:
+        // تم القبول
         return AppColors.sky;
+
       case 3:
+        // تم التعيين
         return AppColors.primary;
+
       case 4:
+        // جاري العمل
+        return AppColors.primary;
+
       case 5:
+        // مكتمل
         return AppColors.success;
+
       default:
         return AppColors.textMuted;
     }
@@ -32,33 +39,54 @@ class TechnicianOrderCard extends StatelessWidget {
   Color _getStatusBgColor(int status) {
     switch (status) {
       case 1:
+        // جديد
         return AppColors.bgWarning;
+
       case 2:
+        // تم القبول
         return AppColors.sky.withValues(alpha: 0.12);
+
       case 3:
+        // تم التعيين
         return AppColors.primaryLight.withValues(alpha: 0.25);
+
       case 4:
+        // جاري العمل
+        return AppColors.primaryLight.withValues(alpha: 0.25);
+
       case 5:
+        // مكتمل
         return AppColors.bgSuccess;
+
       default:
         return AppColors.bgLight;
     }
   }
 
   String _getStatusLabel(int status, String statusText) {
-    if (statusText.isNotEmpty) return statusText;
-
     switch (status) {
       case 1:
         return 'أوردر جديد';
+
       case 2:
         return 'تم القبول';
+
       case 3:
-        return 'جاري العمل';
+        return 'تم التعيين';
+
       case 4:
+        return 'جاري العمل';
+
       case 5:
         return 'مكتمل';
+
       default:
+        // لو الـ API بعت status غير معروف
+        // نستخدم statusText فقط لو موجود
+        if (statusText.isNotEmpty) {
+          return statusText;
+        }
+
         return 'غير محدد';
     }
   }
@@ -67,6 +95,7 @@ class TechnicianOrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(order.status);
     final statusBgColor = _getStatusBgColor(order.status);
+
     final statusLabel = _getStatusLabel(order.status, order.statusText);
 
     return Material(
@@ -79,7 +108,13 @@ class TechnicianOrderCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.bgCard,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.borderSubtle),
+
+            // Border بلون الحالة
+            border: Border.all(
+              width: 3,
+              color: statusColor.withValues(alpha: 0.45),
+            ),
+
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -95,12 +130,18 @@ class TechnicianOrderCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Status Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: statusBgColor,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       statusLabel,
@@ -110,7 +151,10 @@ class TechnicianOrderCard extends StatelessWidget {
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 8),
+
+                  // Order Number
                   Flexible(
                     child: Text(
                       'أوردر ${order.orderNumber.isNotEmpty ? order.orderNumber : "#${order.id}"}',
@@ -128,13 +172,17 @@ class TechnicianOrderCard extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Main Info: Customer Name & Short Area Name
+              // Main Info: Customer Name & Area
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Area
                   if (order.areaName.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primaryLight.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
@@ -147,7 +195,10 @@ class TechnicianOrderCard extends StatelessWidget {
                         ),
                       ),
                     ),
+
                   const SizedBox(width: 8),
+
+                  // Customer Name
                   Expanded(
                     child: Text(
                       order.customerName.isNotEmpty

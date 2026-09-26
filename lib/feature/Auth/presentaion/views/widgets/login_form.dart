@@ -21,6 +21,8 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController phoneController;
   late final TextEditingController passwordController;
+  final FocusNode phoneFocusNode = FocusNode();
+  final FocusNode passwordFocusNode = FocusNode();
   bool _isPasswordObscure = true;
 
   @override
@@ -34,7 +36,18 @@ class _LoginFormState extends State<LoginForm> {
   void dispose() {
     phoneController.dispose();
     passwordController.dispose();
+    phoneFocusNode.dispose();
+    passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  void _submit(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      context.read<LoginCubit>().login(
+            phoneNumber: phoneController.text.trim(),
+            password: passwordController.text,
+          );
+    }
   }
 
   @override
@@ -49,21 +62,29 @@ class _LoginFormState extends State<LoginForm> {
               const SizedBox(height: 8),
               CustomTextField(
                 controller: phoneController,
+                focusNode: phoneFocusNode,
                 hintText: '01XXXXXXXXX',
                 prefixIcon: Icons.phone_android_outlined,
                 keyboardType: TextInputType.phone,
                 isLtr: true,
                 validator: AppValidator.validatePhone,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  passwordFocusNode.requestFocus();
+                },
               ),
               const SizedBox(height: 20),
               const Text('كلمة السر', style: AppStyle.labelMedium),
               const SizedBox(height: 8),
               CustomTextField(
                 controller: passwordController,
+                focusNode: passwordFocusNode,
                 hintText: '********',
                 prefixIcon: Icons.lock_outline,
                 obscureText: _isPasswordObscure,
                 validator: AppValidator.validatePassword,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(context),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isPasswordObscure
@@ -108,14 +129,7 @@ class _LoginFormState extends State<LoginForm> {
               return CustomButton(
                 text: 'تسجيل الدخول',
                 isLoading: state is LoginLoading,
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    context.read<LoginCubit>().login(
-                      phoneNumber: phoneController.text.trim(),
-                      password: passwordController.text,
-                    );
-                  }
-                },
+                onPressed: () => _submit(context),
               );
             },
           ),

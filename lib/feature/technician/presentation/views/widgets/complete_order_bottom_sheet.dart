@@ -31,7 +31,6 @@ class _CompleteOrderBottomSheetState extends State<CompleteOrderBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Pre-populate quantities if order already has items
     if (widget.order.items.isNotEmpty) {
       for (final item in widget.order.items) {
         if (item.productId > 0 && item.quantity > 0) {
@@ -74,7 +73,6 @@ class _CompleteOrderBottomSheetState extends State<CompleteOrderBottomSheet> {
       }
     });
 
-    // Validation: Must select at least 1 item with quantity >= 1
     if (items.isEmpty) {
       setState(() {
         _errorMessage = 'يجب اختيار قطعة غيار واحدة على الأقل بكمية 1 أو أكثر لإصدار الفاتورة.';
@@ -91,14 +89,57 @@ class _CompleteOrderBottomSheetState extends State<CompleteOrderBottomSheet> {
       return;
     }
 
-    final request = CompleteOrderRequestModel(
-      laborCost: _laborCost,
-      paymentMethod: _paymentMethod,
-      items: items,
-      notes: _notesController.text.trim(),
-    );
+    // Payment confirmation step ('تم استلام المبلغ')
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            backgroundColor: AppColors.bgCard,
+            title: Row(
+              children: [
+                const Icon(Icons.payments_rounded, color: AppColors.success, size: 24),
+                const SizedBox(width: 8),
+                const Text('تأكيد استلام المبلغ', style: AppStyle.headingSmall),
+              ],
+            ),
+            content: Text(
+              'هل تم استلام مبلغ الإجمالي النهائي (${_totalAmount} ج.م) من العميل بنجاح؟',
+              style: AppStyle.bodyMedium,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text('إلغاء', style: AppStyle.labelMedium.copyWith(color: AppColors.textMuted)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  Navigator.pop(dialogContext); // Close payment confirmation dialog
+                  Navigator.pop(context); // Close bottom sheet
 
-    widget.onSubmit(request);
+                  final request = CompleteOrderRequestModel(
+                    laborCost: _laborCost,
+                    paymentMethod: _paymentMethod,
+                    items: items,
+                    notes: _notesController.text.trim(),
+                  );
+
+                  widget.onSubmit(request);
+                },
+                child: const Text('نعم، تم استلام المبلغ', style: AppStyle.buttonSmall),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -218,6 +259,7 @@ class _CompleteOrderBottomSheetState extends State<CompleteOrderBottomSheet> {
                   constraints: const BoxConstraints(maxHeight: 200),
                   child: ListView.builder(
                     shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: widget.availableProducts.length,
                     itemBuilder: (context, index) {
                       final product = widget.availableProducts[index];

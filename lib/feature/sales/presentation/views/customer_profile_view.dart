@@ -6,7 +6,6 @@ import '../../../../core/utils/service_locator.dart';
 import '../manager/customer_profile_cubit.dart';
 import '../manager/customer_profile_state.dart';
 import 'widgets/customer_profile_bottom_bar.dart';
-import 'widgets/customer_profile_devices_card.dart';
 import 'widgets/customer_profile_header_card.dart';
 import 'widgets/customer_profile_orders_card.dart';
 

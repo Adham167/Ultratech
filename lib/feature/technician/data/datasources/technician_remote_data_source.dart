@@ -10,9 +10,9 @@ import '../models/technician_response_model.dart';
 import '../models/earnings_model.dart';
 
 abstract class TechnicianRemoteDataSource {
-  Future<TechnicianResponseModel<List<OrderModel>>> getMyOrders({
-    int? status,
-  });
+  Future<TechnicianResponseModel<List<OrderModel>>> getMyOrders({int? status});
+
+  Future<TechnicianResponseModel<OrderModel>> getOrderDetails(int orderId);
 
   Future<TechnicianResponseModel<String>> acceptOrder(int orderId);
 
@@ -33,11 +33,15 @@ abstract class TechnicianRemoteDataSource {
 
   Future<TechnicianResponseModel<EarningsModel>> getMyEarnings();
 
-  Future<TechnicianResponseModel<InvoiceModel>> getInvoiceById(
-    int invoiceId,
-  );
+  Future<TechnicianResponseModel<InvoiceModel>> getInvoiceById(int invoiceId);
 
   Future<TechnicianResponseModel<UserProfileModel>> getUserProfile();
+
+  Future<TechnicianResponseModel<String>> updateOrderLocation(
+    int orderId,
+    double latitude,
+    double longitude,
+  );
 }
 
 class TechnicianRemoteDataSourceImpl implements TechnicianRemoteDataSource {
@@ -222,6 +226,7 @@ class TechnicianRemoteDataSourceImpl implements TechnicianRemoteDataSource {
         queryParameters: queryParams,
       );
       _logResponse(ApiConstants.myOrders, response);
+      debugPrint("DEBUG getMyOrders RAW JSON RESPONSE: $response");
 
       final orders = _parseOrdersList(response);
 
@@ -437,9 +442,7 @@ class TechnicianRemoteDataSourceImpl implements TechnicianRemoteDataSource {
     _logRequest('GET', ApiConstants.myEarnings);
 
     try {
-      final response = await apiService.get(
-        endpoint: ApiConstants.myEarnings,
-      );
+      final response = await apiService.get(endpoint: ApiConstants.myEarnings);
 
       _logResponse(ApiConstants.myEarnings, response);
 
@@ -500,9 +503,7 @@ class TechnicianRemoteDataSourceImpl implements TechnicianRemoteDataSource {
     _logRequest('GET', endpoint);
 
     try {
-      final response = await apiService.get(
-        endpoint: endpoint,
-      );
+      final response = await apiService.get(endpoint: endpoint);
 
       _logResponse(endpoint, response);
 
@@ -589,6 +590,106 @@ class TechnicianRemoteDataSourceImpl implements TechnicianRemoteDataSource {
       );
     } catch (e) {
       debugPrint('Error in getUserProfile: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TechnicianResponseModel<String>> updateOrderLocation(
+    int orderId,
+    double latitude,
+    double longitude,
+  ) async {
+    final endpoint = "Orders/$orderId/customer-location";
+    final body = {"latitude": latitude, "longitude": longitude};
+    _logRequest("PUT", endpoint, body);
+    try {
+      final response = await apiService.put(endpoint: endpoint, body: body);
+      _logResponse(endpoint, response);
+
+      if (response is Map<String, dynamic>) {
+        return TechnicianResponseModel.fromJson(
+          response,
+          (data) =>
+              data?.toString() ??
+              response['message']?.toString() ??
+              "تم تحديث موقع العميل بنجاح",
+        );
+      }
+
+      return TechnicianResponseModel<String>(
+        succeeded: true,
+        message: "تم تحديث موقع العميل بنجاح",
+        data: "تم تحديث موقع العميل بنجاح",
+        errors: [],
+      );
+    } catch (e) {
+      debugPrint("Error in updateOrderLocation: $e");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TechnicianResponseModel<OrderModel>> getOrderDetails(
+      int orderId,
+      ) async {
+    final endpoint = 'Orders/$orderId';
+
+    _logRequest('GET', endpoint);
+
+    try {
+      final response = await apiService.get(
+        endpoint: endpoint,
+      );
+
+      _logResponse(endpoint, response);
+
+      if (response is! Map<String, dynamic>) {
+        return TechnicianResponseModel<OrderModel>(
+          succeeded: false,
+          message: 'استجابة غير صحيحة من الخادم',
+          data: null,
+          errors: ['Invalid response format'],
+        );
+      }
+
+      final succeeded = response['succeeded'] ?? false;
+      final message = response['message']?.toString() ?? '';
+
+      final errors = response['errors'] is List
+          ? List<String>.from(response['errors'])
+          : <String>[];
+
+      final data = response['data'];
+
+      if (data is! Map<String, dynamic>) {
+        return TechnicianResponseModel<OrderModel>(
+          succeeded: false,
+          message: 'لم يتم العثور على تفاصيل الأوردر',
+          data: null,
+          errors: errors.isNotEmpty
+              ? errors
+              : ['Invalid order details data'],
+        );
+      }
+
+      final order = OrderModel.fromJson(data);
+
+      debugPrint(
+        'DEBUG getOrderDetails: '
+            'orderId=$orderId, '
+            'items=${order.items.length}, '
+            'itemsCount=${order.itemsCount}',
+      );
+
+      return TechnicianResponseModel<OrderModel>(
+        succeeded: succeeded,
+        message: message,
+        data: order,
+        errors: errors,
+      );
+    } catch (e) {
+      debugPrint('Error in getOrderDetails: $e');
       rethrow;
     }
   }

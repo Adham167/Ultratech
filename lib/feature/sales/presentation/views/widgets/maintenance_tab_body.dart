@@ -4,8 +4,8 @@ import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../manager/maintenance_cubit.dart';
 import '../../manager/maintenance_state.dart';
-import '../../widgets/decision_bottom_sheet.dart';
-import '../../widgets/maintenance_card_widget.dart';
+import 'decision_bottom_sheet.dart';
+import 'maintenance_card_widget.dart';
 
 class MaintenanceTabBody extends StatelessWidget {
   const MaintenanceTabBody({super.key});

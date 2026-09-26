@@ -106,6 +106,7 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
     try {
       final response = await apiService.get(endpoint: endpoint);
       _logResponse(endpoint, response);
+      debugPrint("DEBUG getOrderDetails RAW JSON RESPONSE for order $orderId: $response");
 
       dynamic orderJson;
       final data = response is Map<String, dynamic> ? response['data'] : null;

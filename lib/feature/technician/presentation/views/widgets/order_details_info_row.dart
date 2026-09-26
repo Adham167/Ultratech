@@ -21,19 +21,25 @@ class OrderDetailsInfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.left,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-              style: AppStyle.bodyMedium,
-            ),
-          ),
-          const SizedBox(width: 12),
           Icon(icon, size: 18, color: AppColors.textMuted),
           const SizedBox(width: 8),
-          Text(label, style: AppStyle.hint),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppStyle.hint,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  style: AppStyle.bodyMedium,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

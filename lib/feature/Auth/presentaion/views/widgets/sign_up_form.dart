@@ -24,6 +24,13 @@ class _SignUpFormState extends State<SignUpForm> {
   late final TextEditingController phoneController;
   late final TextEditingController passwordController;
   late final TextEditingController confirmPasswordController;
+
+  final FocusNode fullNameFocusNode = FocusNode();
+  final FocusNode emailFocusNode = FocusNode();
+  final FocusNode phoneFocusNode = FocusNode();
+  final FocusNode passwordFocusNode = FocusNode();
+  final FocusNode confirmPasswordFocusNode = FocusNode();
+
   bool _isPasswordObscure = true;
   bool _isConfirmPasswordObscure = true;
   UserRole selectedRole = UserRole.sales;
@@ -50,7 +57,24 @@ class _SignUpFormState extends State<SignUpForm> {
     phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    fullNameFocusNode.dispose();
+    emailFocusNode.dispose();
+    phoneFocusNode.dispose();
+    passwordFocusNode.dispose();
+    confirmPasswordFocusNode.dispose();
     super.dispose();
+  }
+
+  void _submit(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      context.read<RegisterCubit>().register(
+            fullName: fullNameController.text.trim(),
+            email: emailController.text.trim(),
+            phoneNumber: phoneController.text.trim(),
+            password: passwordController.text,
+            role: selectedRole,
+          );
+    }
   }
 
   @override
@@ -65,41 +89,53 @@ class _SignUpFormState extends State<SignUpForm> {
               const SizedBox(height: 8),
               CustomTextField(
                 controller: fullNameController,
+                focusNode: fullNameFocusNode,
                 hintText: 'أدخل اسمك الثلاثي',
                 prefixIcon: Icons.person_outline,
                 validator: AppValidator.validateName,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => emailFocusNode.requestFocus(),
               ),
               const SizedBox(height: 20),
               const Text('البريد الإلكتروني', style: AppStyle.labelMedium),
               const SizedBox(height: 8),
               CustomTextField(
                 controller: emailController,
+                focusNode: emailFocusNode,
                 hintText: 'example@mail.com',
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 isLtr: true,
                 validator: AppValidator.validateEmail,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => phoneFocusNode.requestFocus(),
               ),
               const SizedBox(height: 20),
               const Text('رقم الهاتف', style: AppStyle.labelMedium),
               const SizedBox(height: 8),
               CustomTextField(
                 controller: phoneController,
+                focusNode: phoneFocusNode,
                 hintText: '01XXXXXXXXX',
                 prefixIcon: Icons.phone_android_outlined,
                 keyboardType: TextInputType.phone,
                 isLtr: true,
                 validator: AppValidator.validatePhone,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => passwordFocusNode.requestFocus(),
               ),
               const SizedBox(height: 20),
               const Text('كلمة السر', style: AppStyle.labelMedium),
               const SizedBox(height: 8),
               CustomTextField(
                 controller: passwordController,
+                focusNode: passwordFocusNode,
                 hintText: '********',
                 prefixIcon: Icons.lock_outline,
                 obscureText: _isPasswordObscure,
                 validator: AppValidator.validatePassword,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => confirmPasswordFocusNode.requestFocus(),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isPasswordObscure
@@ -120,6 +156,7 @@ class _SignUpFormState extends State<SignUpForm> {
               const SizedBox(height: 8),
               CustomTextField(
                 controller: confirmPasswordController,
+                focusNode: confirmPasswordFocusNode,
                 hintText: '********',
                 prefixIcon: Icons.lock_outline,
                 obscureText: _isConfirmPasswordObscure,
@@ -132,6 +169,8 @@ class _SignUpFormState extends State<SignUpForm> {
                   }
                   return null;
                 },
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(context),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isConfirmPasswordObscure
@@ -159,17 +198,7 @@ class _SignUpFormState extends State<SignUpForm> {
               return CustomButton(
                 text: 'تسجيل حساب جديد',
                 isLoading: state is RegisterLoading,
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    context.read<RegisterCubit>().register(
-                      fullName: fullNameController.text.trim(),
-                      email: emailController.text.trim(),
-                      phoneNumber: phoneController.text.trim(),
-                      password: passwordController.text,
-                      role: selectedRole,
-                    );
-                  }
-                },
+                onPressed: () => _submit(context),
               );
             },
           ),

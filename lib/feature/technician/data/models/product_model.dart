@@ -14,24 +14,31 @@ class ProductModel {
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
-    final stock = json['stockQuantity'] is int
-        ? json['stockQuantity']
-        : (json['availableCount'] is int
-            ? json['availableCount']
-            : int.tryParse(json['stockQuantity']?.toString() ?? json['availableCount']?.toString() ?? '0') ?? 0);
-    
+    final stockVal = json['currentStock'] ?? json['stockQuantity'] ?? json['availableCount'];
+    final stock = stockVal is int
+        ? stockVal
+        : (stockVal is num
+            ? stockVal.toInt()
+            : int.tryParse(stockVal?.toString() ?? '0') ?? 0);
+
+    final idVal = json['id'];
+    final id = idVal is int
+        ? idVal
+        : (idVal is num
+            ? idVal.toInt()
+            : int.tryParse(idVal?.toString() ?? '0') ?? 0);
+
+    final priceVal = json['retailPrice'] ?? json['unitRetailPrice'] ?? json['price'];
+    final retailPrice = priceVal is num
+        ? priceVal
+        : num.tryParse(priceVal?.toString() ?? '0') ?? 0;
+
+    final name = json['name']?.toString() ?? json['productName']?.toString() ?? '';
+
     return ProductModel(
-      id: json['id'] is int
-          ? json['id']
-          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
-      name: json['name']?.toString() ?? json['productName']?.toString() ?? '',
-      retailPrice: json['retailPrice'] is num
-          ? json['retailPrice']
-          : (json['unitRetailPrice'] is num
-              ? json['unitRetailPrice']
-              : (json['price'] is num
-                  ? json['price']
-                  : num.tryParse(json['retailPrice']?.toString() ?? json['price']?.toString() ?? '0') ?? 0)),
+      id: id,
+      name: name,
+      retailPrice: retailPrice,
       stockQuantity: stock,
       isLowStock: json['isLowStock'] == true || stock < 3,
     );

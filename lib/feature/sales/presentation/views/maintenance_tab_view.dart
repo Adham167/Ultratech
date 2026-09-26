@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/service_locator.dart';
 import '../manager/maintenance_cubit.dart';
 import 'widgets/maintenance_tab_body.dart';
@@ -63,7 +64,9 @@ class _MaintenanceTabViewState extends State<MaintenanceTabView>
     super.build(context);
     return BlocProvider.value(
       value: _maintenanceCubit,
-      child: const MaintenanceTabBody(),
+      child: Scaffold(
+          backgroundColor: AppColors.bgPage,
+          body: const MaintenanceTabBody()),
     );
   }
 }

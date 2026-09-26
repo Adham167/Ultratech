@@ -14,6 +14,7 @@ import 'earnings_logout_button.dart';
 import 'earnings_orders_card.dart';
 import 'earnings_profile_header_card.dart';
 import 'earnings_salary_card.dart';
+import '../../../../Auth/presentaion/views/widgets/change_password_button.dart';
 
 class TechnicianEarningsViewBody extends StatelessWidget {
   const TechnicianEarningsViewBody({super.key});
@@ -143,6 +144,8 @@ class TechnicianEarningsViewBody extends StatelessWidget {
             const SizedBox(height: 16),
             EarningsOrdersCard(totalOrdersCompleted: earnings.totalOrdersCompleted),
             const SizedBox(height: 24),
+            const ChangePasswordButton(),
+            const SizedBox(height: 12),
             const EarningsLogoutButton(),
             const SizedBox(height: 20),
           ],

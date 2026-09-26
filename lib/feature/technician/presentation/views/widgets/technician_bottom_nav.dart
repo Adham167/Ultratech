@@ -46,15 +46,6 @@ class TechnicianBottomNav extends StatelessWidget {
           children: [
             Expanded(
               child: TechNavItem(
-                icon: Icons.inbox_outlined,
-                activeIcon: Icons.inbox_rounded,
-                label: 'الأوردرات',
-                isSelected: navigationShell.currentIndex == 0,
-                onTap: () => _onTap(0),
-              ),
-            ),
-            Expanded(
-              child: TechNavItem(
                 icon: Icons.person_outline,
                 activeIcon: Icons.person,
                 label: 'البروفايل والأرباح',
@@ -62,6 +53,16 @@ class TechnicianBottomNav extends StatelessWidget {
                 onTap: () => _onTap(1),
               ),
             ),
+            Expanded(
+              child: TechNavItem(
+                icon: Icons.inbox_outlined,
+                activeIcon: Icons.inbox_rounded,
+                label: 'الأوردرات',
+                isSelected: navigationShell.currentIndex == 0,
+                onTap: () => _onTap(0),
+              ),
+            ),
+
             Expanded(
               child: TechNavItem(
                 icon: Icons.access_time,

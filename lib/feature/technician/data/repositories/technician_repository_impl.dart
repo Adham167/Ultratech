@@ -10,6 +10,7 @@ import 'package:ultra_tech/feature/technician/data/models/product_model.dart';
 import 'package:ultra_tech/feature/technician/data/models/earnings_model.dart';
 import 'package:ultra_tech/feature/technician/domain/repositories/technician_repository.dart';
 
+
 class TechnicianRepositoryImpl implements TechnicianRepository {
   final TechnicianRemoteDataSource remoteDataSource;
 
@@ -22,11 +23,15 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
       if (response.succeeded && response.data != null) {
         return Right(response.data!);
       } else {
-        return Left(ServerFailure(
-          response.errors.isNotEmpty
-              ? response.errors.join('\n')
-              : (response.message.isNotEmpty ? response.message : 'فشل في جلب الأوردرات'),
-        ));
+        return Left(
+          ServerFailure(
+            response.errors.isNotEmpty
+                ? response.errors.join('\n')
+                : (response.message.isNotEmpty
+                      ? response.message
+                      : 'فشل في جلب الأوردرات'),
+          ),
+        );
       }
     } catch (e) {
       if (e is DioException) {
@@ -42,14 +47,21 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
       final response = await remoteDataSource.acceptOrder(orderId);
       if (response.succeeded) {
         return Right(
-          response.data ?? (response.message.isNotEmpty ? response.message : 'تم قبول الأوردر بنجاح'),
+          response.data ??
+              (response.message.isNotEmpty
+                  ? response.message
+                  : 'تم قبول الأوردر بنجاح'),
         );
       } else {
-        return Left(ServerFailure(
-          response.errors.isNotEmpty
-              ? response.errors.join('\n')
-              : (response.message.isNotEmpty ? response.message : 'فشل في قبول الأوردر'),
-        ));
+        return Left(
+          ServerFailure(
+            response.errors.isNotEmpty
+                ? response.errors.join('\n')
+                : (response.message.isNotEmpty
+                      ? response.message
+                      : 'فشل في قبول الأوردر'),
+          ),
+        );
       }
     } catch (e) {
       if (e is DioException) {
@@ -65,14 +77,21 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
       final response = await remoteDataSource.startOrder(orderId);
       if (response.succeeded) {
         return Right(
-          response.data ?? (response.message.isNotEmpty ? response.message : 'تم التأكيد وبدء العمل بنجاح'),
+          response.data ??
+              (response.message.isNotEmpty
+                  ? response.message
+                  : 'تم التأكيد وبدء العمل بنجاح'),
         );
       } else {
-        return Left(ServerFailure(
-          response.errors.isNotEmpty
-              ? response.errors.join('\n')
-              : (response.message.isNotEmpty ? response.message : 'فشل في بدء العمل'),
-        ));
+        return Left(
+          ServerFailure(
+            response.errors.isNotEmpty
+                ? response.errors.join('\n')
+                : (response.message.isNotEmpty
+                      ? response.message
+                      : 'فشل في بدء العمل'),
+          ),
+        );
       }
     } catch (e) {
       if (e is DioException) {
@@ -83,40 +102,60 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
   }
 
   @override
-  Future<Either<Failure, String>> completeOrder(int orderId, CompleteOrderRequestModel request) async {
+  Future<Either<Failure, String>> completeOrder(
+    int orderId,
+    CompleteOrderRequestModel request,
+  ) async {
     try {
       final response = await remoteDataSource.completeOrder(orderId, request);
+
       if (response.succeeded) {
         return Right(
-          response.data ?? (response.message.isNotEmpty ? response.message : 'تم إنهاء العمل وإصدار الفاتورة بنجاح'),
+          response.data ??
+              (response.message.isNotEmpty
+                  ? response.message
+                  : 'تم إنهاء العمل وإصدار الفاتورة بنجاح'),
         );
-      } else {
-        return Left(ServerFailure(
+      }
+
+      return Left(
+        ServerFailure(
           response.errors.isNotEmpty
               ? response.errors.join('\n')
-              : (response.message.isNotEmpty ? response.message : 'فشل في إنهاء الأوردر'),
-        ));
-      }
+              : (response.message.isNotEmpty
+                    ? response.message
+                    : 'فشل في إنهاء الأوردر'),
+        ),
+      );
     } catch (e) {
       if (e is DioException) {
         return Left(ServerFailure.fromDioException(e));
       }
+
       return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<ProductModel>>> getProducts({bool onlyInStock = true}) async {
+  Future<Either<Failure, List<ProductModel>>> getProducts({
+    bool onlyInStock = true,
+  }) async {
     try {
-      final response = await remoteDataSource.getProducts(onlyInStock: onlyInStock);
+      final response = await remoteDataSource.getProducts(
+        onlyInStock: onlyInStock,
+      );
       if (response.succeeded && response.data != null) {
         return Right(response.data!);
       } else {
-        return Left(ServerFailure(
-          response.errors.isNotEmpty
-              ? response.errors.join('\n')
-              : (response.message.isNotEmpty ? response.message : 'فشل في جلب قائمة المنتجات'),
-        ));
+        return Left(
+          ServerFailure(
+            response.errors.isNotEmpty
+                ? response.errors.join('\n')
+                : (response.message.isNotEmpty
+                      ? response.message
+                      : 'فشل في جلب قائمة المنتجات'),
+          ),
+        );
       }
     } catch (e) {
       if (e is DioException) {
@@ -127,17 +166,23 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
   }
 
   @override
-  Future<Either<Failure, List<InvoiceModel>>> getMyInvoices({int? status}) async {
+  Future<Either<Failure, List<InvoiceModel>>> getMyInvoices({
+    int? status,
+  }) async {
     try {
       final response = await remoteDataSource.getMyInvoices(status: status);
       if (response.succeeded && response.data != null) {
         return Right(response.data!);
       } else {
-        return Left(ServerFailure(
-          response.errors.isNotEmpty
-              ? response.errors.join('\n')
-              : (response.message.isNotEmpty ? response.message : 'فشل في جلب قائمة الفواتير'),
-        ));
+        return Left(
+          ServerFailure(
+            response.errors.isNotEmpty
+                ? response.errors.join('\n')
+                : (response.message.isNotEmpty
+                      ? response.message
+                      : 'فشل في جلب قائمة الفواتير'),
+          ),
+        );
       }
     } catch (e) {
       if (e is DioException) {
@@ -160,8 +205,8 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
             response.errors.isNotEmpty
                 ? response.errors.join('\n')
                 : (response.message.isNotEmpty
-                    ? response.message
-                    : 'فشل في جلب بيانات الأرباح'),
+                      ? response.message
+                      : 'فشل في جلب بيانات الأرباح'),
           ),
         );
       }
@@ -191,9 +236,7 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
       return Right(response.data!);
     } on DioException catch (e) {
       return Left(
-        ServerFailure(
-          e.message ?? 'حدث خطأ أثناء جلب تفاصيل الفاتورة',
-        ),
+        ServerFailure(e.message ?? 'حدث خطأ أثناء جلب تفاصيل الفاتورة'),
       );
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -212,8 +255,8 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
             response.errors.isNotEmpty
                 ? response.errors.join('\n')
                 : (response.message.isNotEmpty
-                    ? response.message
-                    : 'فشل في جلب بيانات البروفايل'),
+                      ? response.message
+                      : 'فشل في جلب بيانات البروفايل'),
           ),
         );
       }
@@ -221,6 +264,71 @@ class TechnicianRepositoryImpl implements TechnicianRepository {
       if (e is DioException) {
         return Left(ServerFailure.fromDioException(e));
       }
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> updateOrderLocation(
+    int orderId,
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      final response = await remoteDataSource.updateOrderLocation(
+        orderId,
+        latitude,
+        longitude,
+      );
+      if (response.succeeded) {
+        return Right(
+          response.data ??
+              (response.message.isNotEmpty
+                  ? response.message
+                  : 'تم تحديث موقع العميل بنجاح'),
+        );
+      } else {
+        return Left(
+          ServerFailure(
+            response.errors.isNotEmpty
+                ? response.errors.join('\n')
+                : (response.message.isNotEmpty
+                      ? response.message
+                      : 'فشل في تحديث الموقع'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (e is DioException) {
+        return Left(ServerFailure.fromDioException(e));
+      }
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, OrderModel>> getOrderDetails(int orderId) async {
+    try {
+      final response = await remoteDataSource.getOrderDetails(orderId);
+
+      if (response.succeeded && response.data != null) {
+        return Right(response.data!);
+      }
+
+      return Left(
+        ServerFailure(
+          response.errors.isNotEmpty
+              ? response.errors.join('\n')
+              : (response.message.isNotEmpty
+                    ? response.message
+                    : 'فشل في جلب تفاصيل الأوردر'),
+        ),
+      );
+    } catch (e) {
+      if (e is DioException) {
+        return Left(ServerFailure.fromDioException(e));
+      }
+
       return Left(ServerFailure(e.toString()));
     }
   }

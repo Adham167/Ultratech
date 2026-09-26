@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../../data/models/invoice_model.dart';
 import '../../../data/models/order_model.dart';
 import '../../../data/models/product_model.dart';
@@ -44,7 +45,7 @@ class TechnicianOrdersFailure extends TechnicianOrdersState {
 
 class TechnicianActionLoading extends TechnicianOrdersState {
   final int orderId;
-  final String actionType; // 'accept', 'start', 'complete'
+  final String actionType;
 
   const TechnicianActionLoading({
     required this.orderId,

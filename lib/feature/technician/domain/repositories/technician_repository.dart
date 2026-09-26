@@ -17,4 +17,8 @@ abstract class TechnicianRepository {
   Future<Either<Failure, EarningsModel>> getMyEarnings();
   Future<Either<Failure, InvoiceModel>> getInvoiceById(int invoiceId);
   Future<Either<Failure, UserProfileModel>> getUserProfile();
+  Future<Either<Failure, String>> updateOrderLocation(int orderId, double latitude, double longitude);
+  Future<Either<Failure, OrderModel>> getOrderDetails(
+      int orderId,
+      );
 }

@@ -12,6 +12,9 @@ class CustomTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
+  final FocusNode? focusNode;
 
   const CustomTextField({
     super.key,
@@ -23,6 +26,9 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.textInputAction,
+    this.onFieldSubmitted,
+    this.focusNode,
   });
 
   @override
@@ -31,8 +37,11 @@ class CustomTextField extends StatelessWidget {
       textDirection: isLtr ? TextDirection.ltr : TextDirection.rtl,
       child: TextFormField(
         controller: controller,
+        focusNode: focusNode,
         obscureText: obscureText,
         keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        onFieldSubmitted: onFieldSubmitted,
         textAlign: isLtr ? TextAlign.left : TextAlign.right,
         style: AppStyle.labelSmall.copyWith(
           fontSize: 14,
